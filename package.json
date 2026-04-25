@@ -1,0 +1,29 @@
+{
+  "name": "promptwars-warmup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashish-srivastava1/PromptWars-Warmup.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ashish-srivastava1/PromptWars-Warmup/issues"
+  },
+  "homepage": "https://github.com/ashish-srivastava1/PromptWars-Warmup#readme",
+  "devDependencies": {
+    "@google/genai": "^1.50.1",
+    "@vitest/coverage-v8": "^4.1.5",
+    "dotenv": "^17.4.2",
+    "firebase": "^12.12.1",
+    "jsdom": "^29.0.2",
+    "vitest": "^4.1.5"
+  }
+}

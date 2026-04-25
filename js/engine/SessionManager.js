@@ -7,7 +7,7 @@ import { contentEngine } from './ContentEngine.js';
 import { evaluator } from './Evaluator.js';
 import { difficultyAdjuster } from './DifficultyAdjuster.js';
 import { recommender } from './Recommender.js';
-import { storage } from '../storage/StorageManager.js';
+import { cloudStorage as storage } from '../storage/CloudStorageManager.js';
 
 export class SessionManager {
   constructor(userProfile, learningState) {

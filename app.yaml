@@ -1,0 +1,26 @@
+runtime: python312
+env: standard
+
+handlers:
+  # Serve CSS files
+  - url: /css
+    static_dir: css
+
+  # Serve JS files
+  - url: /js
+    static_dir: js
+
+  # Serve the main index.html for the root URL
+  - url: /
+    static_files: index.html
+    upload: index.html
+
+  # Serve design_document.md
+  - url: /design_document.md
+    static_files: design_document.md
+    upload: design_document.md
+
+  # Catch-all: serve index.html for SPA routing
+  - url: /.*
+    static_files: index.html
+    upload: index.html

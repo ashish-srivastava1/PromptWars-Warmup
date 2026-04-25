@@ -5,7 +5,7 @@
 import { UserProfile } from './models/UserProfile.js';
 import { LearningState } from './models/LearningState.js';
 import { SessionManager } from './engine/SessionManager.js';
-import { storage } from './storage/StorageManager.js';
+import { cloudStorage as storage } from './storage/CloudStorageManager.js';
 import { OnboardingView } from './ui/OnboardingView.js';
 import { DashboardView } from './ui/DashboardView.js';
 import { SessionView } from './ui/SessionView.js';
