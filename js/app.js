@@ -9,6 +9,7 @@ import { cloudStorage as storage } from './storage/CloudStorageManager.js';
 import { OnboardingView } from './ui/OnboardingView.js';
 import { DashboardView } from './ui/DashboardView.js';
 import { SessionView } from './ui/SessionView.js';
+import { logger } from './utils/CloudLogger.js';
 
 class App {
   constructor() {
@@ -16,20 +17,42 @@ class App {
     this.profile = null;
     this.state = null;
     this.sessionManager = null;
+    this.logger = new logger.constructor('App');
   }
 
-  init() {
-    // Try to restore from localStorage
-    const savedProfile = storage.load('profile');
-    const savedState = storage.load('learningState');
+  async init() {
+    try {
+      this.logger.info('Application initializing');
+      
+      // Try to restore from storage (async-ready)
+      const savedProfile = storage.load('profile');
+      const savedState = storage.load('learningState');
 
-    if (savedProfile) {
-      this.profile = UserProfile.fromJSON(savedProfile);
-      this.state = savedState ? LearningState.fromJSON(savedState) : new LearningState(this.profile.id);
-      this.showDashboard();
-    } else {
-      this.showOnboarding();
+      if (savedProfile) {
+        this.profile = UserProfile.fromJSON(savedProfile);
+        this.state = savedState ? LearningState.fromJSON(savedState) : new LearningState(this.profile.id);
+        this.logger.info('Restored session for user', { userId: this.profile.id });
+        this.showDashboard();
+      } else {
+        this.showOnboarding();
+      }
+    } catch (err) {
+      this.handleGlobalError(err);
     }
+  }
+
+  handleGlobalError(err) {
+    this.logger.error('Critical application error', { error: err.message, stack: err.stack });
+    this.root.innerHTML = `
+      <div class="view error-view" role="alert">
+        <div class="empty-state">
+          <div class="empty-state__icon">⚠️</div>
+          <h1 class="empty-state__title">Something went wrong</h1>
+          <p>The application encountered an unexpected error. We've logged the details and are looking into it.</p>
+          <button class="btn btn--primary btn--lg" onclick="window.location.reload()">Reload App</button>
+        </div>
+      </div>
+    `;
   }
 
   _render(html) {
@@ -47,41 +70,56 @@ class App {
   }
 
   showDashboard() {
-    // Re-load fresh profile from storage in case it was updated
-    const saved = storage.load('profile');
-    if (saved) this.profile = UserProfile.fromJSON(saved);
+    try {
+      // Re-load fresh profile from storage in case it was updated
+      const saved = storage.load('profile');
+      if (saved) this.profile = UserProfile.fromJSON(saved);
 
-    const view = new DashboardView(
-      this.profile,
-      (topicId) => this.showSession(topicId),
-      () => this.resetApp()
-    );
-    this._render(view.render());
-    view.mount();
+      const view = new DashboardView(
+        this.profile,
+        (topicId) => this.showSession(topicId),
+        () => this.resetApp()
+      );
+      this._render(view.render());
+      view.mount();
+    } catch (err) {
+      this.handleGlobalError(err);
+    }
   }
 
   showSession(topicId) {
-    this.sessionManager = new SessionManager(this.profile, this.state);
-    const view = new SessionView(
-      this.sessionManager,
-      () => this.showDashboard()
-    );
-    this._render(view.render());
-    view.mount();
-    view.startTopic(topicId);
+    try {
+      this.sessionManager = new SessionManager(this.profile, this.state);
+      const view = new SessionView(
+        this.sessionManager,
+        () => this.showDashboard()
+      );
+      this._render(view.render());
+      view.mount();
+      view.startTopic(topicId);
+    } catch (err) {
+      this.handleGlobalError(err);
+    }
   }
 
-  resetApp() {
-    storage.clear();
-    this.profile = null;
-    this.state = null;
-    this.sessionManager = null;
-    this.showOnboarding();
+  async resetApp() {
+    try {
+      this.logger.warn('Resetting application state');
+      storage.clear();
+      this.profile = null;
+      this.state = null;
+      this.sessionManager = null;
+      this.showOnboarding();
+    } catch (err) {
+      this.handleGlobalError(err);
+    }
   }
 }
 
 // Boot
 document.addEventListener('DOMContentLoaded', () => {
   const app = new App();
-  app.init();
+  app.init().catch(err => {
+    console.error('Fatal boot error:', err);
+  });
 });
