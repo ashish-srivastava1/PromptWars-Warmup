@@ -4,72 +4,83 @@
 import { UserProfile } from '../models/UserProfile.js';
 import { LearningState } from '../models/LearningState.js';
 import { storage } from '../storage/StorageManager.js';
+import { SecurityUtils } from '../utils/SecurityUtils.js';
+import { logger } from '../utils/CloudLogger.js';
 
 export class OnboardingView {
   constructor(onComplete) {
     this.onComplete = onComplete;
     this.selectedLevel = null;
+    this.logger = new logger.constructor('OnboardingView');
   }
 
   render() {
     return `
-      <div class="view onboarding-view" id="onboarding-view">
+      <main class="view onboarding-view" id="onboarding-view" role="main">
         <div class="onboarding-container">
           <!-- Step 1: Welcome -->
-          <div class="onboarding-step onboarding-step--active" id="onboard-step-1">
+          <section class="onboarding-step onboarding-step--active" id="onboard-step-1" aria-labelledby="step1-title">
             <div class="onboarding-hero">
-              <div class="onboarding-logo">
+              <div class="onboarding-logo" aria-hidden="true">
                 <span class="logo-icon">🧠</span>
                 <span class="logo-glow"></span>
               </div>
-              <h1 class="onboarding-title">Learning Companion</h1>
+              <h1 class="onboarding-title" id="step1-title">Learning Companion</h1>
               <p class="onboarding-subtitle">Your intelligent, adaptive learning partner.<br>Master concepts at your own pace.</p>
             </div>
-            <button class="btn btn--primary btn--lg" id="btn-get-started">Get Started</button>
-          </div>
+            <button class="btn btn--primary btn--lg" id="btn-get-started" aria-label="Start onboarding">Get Started</button>
+          </section>
 
           <!-- Step 2: Name -->
-          <div class="onboarding-step" id="onboard-step-2">
-            <h2 class="onboarding-heading">What should we call you?</h2>
+          <section class="onboarding-step" id="onboard-step-2" aria-labelledby="step2-title">
+            <h2 class="onboarding-heading" id="step2-title">What should we call you?</h2>
             <p class="onboarding-text">We'll personalize your learning experience.</p>
             <div class="input-group">
-              <input type="text" class="input" id="input-name" placeholder="Enter your name" maxlength="30" autocomplete="off"/>
+              <label for="input-name" class="sr-only">Your Name</label>
+              <input type="text" 
+                     class="input" 
+                     id="input-name" 
+                     placeholder="Enter your name" 
+                     maxlength="30" 
+                     autocomplete="name"
+                     aria-describedby="name-hint"/>
+              <p id="name-hint" class="sr-only">Enter 2-30 alphanumeric characters.</p>
             </div>
             <button class="btn btn--primary btn--lg" id="btn-name-next" disabled>Continue</button>
-          </div>
+          </section>
 
           <!-- Step 3: Skill Level -->
-          <div class="onboarding-step" id="onboard-step-3">
-            <h2 class="onboarding-heading">What's your experience level?</h2>
+          <section class="onboarding-step" id="onboard-step-3" aria-labelledby="step3-title">
+            <h2 class="onboarding-heading" id="step3-title">What's your experience level?</h2>
             <p class="onboarding-text">This helps us tailor content difficulty for you.</p>
-            <div class="skill-cards" id="skill-cards">
-              <button class="skill-card" data-level="beginner">
-                <div class="skill-card__icon">🌱</div>
+            <div class="skill-cards" id="skill-cards" role="radiogroup" aria-labelledby="step3-title">
+              <button class="skill-card" data-level="beginner" role="radio" aria-checked="false">
+                <div class="skill-card__icon" aria-hidden="true">🌱</div>
                 <div class="skill-card__title">Beginner</div>
                 <div class="skill-card__desc">New to programming, starting from scratch</div>
               </button>
-              <button class="skill-card" data-level="intermediate">
-                <div class="skill-card__icon">🌿</div>
+              <button class="skill-card" data-level="intermediate" role="radio" aria-checked="false">
+                <div class="skill-card__icon" aria-hidden="true">🌿</div>
                 <div class="skill-card__title">Intermediate</div>
                 <div class="skill-card__desc">Familiar with basics, ready to go deeper</div>
               </button>
-              <button class="skill-card" data-level="advanced">
-                <div class="skill-card__icon">🌳</div>
+              <button class="skill-card" data-level="advanced" role="radio" aria-checked="false">
+                <div class="skill-card__icon" aria-hidden="true">🌳</div>
                 <div class="skill-card__title">Advanced</div>
                 <div class="skill-card__desc">Experienced, looking to fill gaps & master topics</div>
               </button>
             </div>
             <button class="btn btn--primary btn--lg" id="btn-skill-next" disabled>Start Learning</button>
-          </div>
+          </section>
 
           <!-- Progress dots -->
-          <div class="onboarding-dots">
-            <span class="dot dot--active" data-step="1"></span>
+          <nav class="onboarding-dots" aria-label="Onboarding progress">
+            <span class="dot dot--active" data-step="1" aria-current="step"></span>
             <span class="dot" data-step="2"></span>
             <span class="dot" data-step="3"></span>
-          </div>
+          </nav>
         </div>
-      </div>`;
+      </main>`;
   }
 
   mount() {
@@ -79,11 +90,20 @@ export class OnboardingView {
     const dots = document.querySelectorAll('.onboarding-dots .dot');
 
     const goToStep = (num) => {
+      this.logger.info(`Navigating to onboarding step ${num}`);
       [step1, step2, step3].forEach((s, i) => {
         s.classList.toggle('onboarding-step--active', i === num - 1);
       });
-      dots.forEach((d, i) => d.classList.toggle('dot--active', i < num));
+      dots.forEach((d, i) => {
+        const isActive = i === num - 1;
+        d.classList.toggle('dot--active', i < num);
+        if (isActive) d.setAttribute('aria-current', 'step');
+        else d.removeAttribute('aria-current');
+      });
+      
+      // Focus management
       if (num === 2) setTimeout(() => document.getElementById('input-name')?.focus(), 400);
+      if (num === 3) setTimeout(() => document.querySelector('.skill-card')?.focus(), 400);
     };
 
     // Step 1 → 2
@@ -93,10 +113,11 @@ export class OnboardingView {
     const nameInput = document.getElementById('input-name');
     const nameBtn = document.getElementById('btn-name-next');
     nameInput.addEventListener('input', () => {
-      nameBtn.disabled = nameInput.value.trim().length === 0;
+      const isValid = SecurityUtils.validateUsername(nameInput.value);
+      nameBtn.disabled = !isValid;
     });
     nameInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && nameInput.value.trim()) goToStep(3);
+      if (e.key === 'Enter' && !nameBtn.disabled) goToStep(3);
     });
     nameBtn.addEventListener('click', () => goToStep(3));
 
@@ -106,15 +127,21 @@ export class OnboardingView {
     skillCards.addEventListener('click', (e) => {
       const card = e.target.closest('.skill-card');
       if (!card) return;
-      document.querySelectorAll('.skill-card').forEach(c => c.classList.remove('skill-card--selected'));
+      document.querySelectorAll('.skill-card').forEach(c => {
+        c.classList.remove('skill-card--selected');
+        c.setAttribute('aria-checked', 'false');
+      });
       card.classList.add('skill-card--selected');
+      card.setAttribute('aria-checked', 'true');
       this.selectedLevel = card.dataset.level;
       skillBtn.disabled = false;
+      this.logger.info('Skill level selected', { level: this.selectedLevel });
     });
 
     // Complete onboarding
     skillBtn.addEventListener('click', () => {
       const name = nameInput.value.trim();
+      this.logger.info('Completing onboarding', { name });
       const profile = new UserProfile({ name, skillLevel: this.selectedLevel });
       const state = new LearningState(profile.id);
       storage.save('profile', profile.toJSON());

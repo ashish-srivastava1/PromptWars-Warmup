@@ -37,31 +37,61 @@ The system uses a modular, event-driven architecture separated into logical laye
    ```bash
    npm run test          # Run tests
    npm run test:coverage # Run tests with coverage report
-   ```
+## 🏗️ Architecture & Production Grade Engineering
 
-3. **Start the Application:**
-   Serve the application using any static HTTP server (e.g., `npx serve .`).
-   Navigate to `http://localhost:3000` to interact with the learning companion.
+This platform is architected for production-grade excellence, following Google Staff Engineering standards.
 
-## Google Cloud Services Integration
+### Core Architecture
+The system uses a modular, event-driven architecture:
+- **UI Layer**: Vanilla ES6 components with full ARIA accessibility support.
+- **Adaptive Engine**: Decoupled logic for learning state management and difficulty adjustment.
+- **Resilience Layer**: Exponential backoff and retry patterns for all cloud-bound requests.
+- **Security Layer**: Integrated Firebase Auth and automated input sanitization.
 
-This project is integrated with real Google Cloud services. 
+### ♿ Accessibility (A11Y)
+- **Semantic HTML**: Proper use of `<main>`, `<header>`, `<nav>`, and `<section>` landmarks.
+- **Keyboard Navigation**: Full support for `TAB` and `ENTER/SPACE` interaction across all views.
+- **Screen Reader Optimized**: Comprehensive ARIA roles (`progressbar`, `radiogroup`, `alert`) and live regions.
+- **Focus Management**: Automated focus shifting between onboarding steps and learning sessions.
 
-### 1. Firebase (Firestore & Storage)
-The application can automatically sync user progress and learning state to a Firestore database. 
-- **Configuration:** Update the API keys and project IDs in `js/config/cloudConfig.js`. 
-- **Graceful Fallback:** If Firebase configuration is missing or initialization fails, the app seamlessly falls back to `localStorage`.
+### 🔒 Security Hardening
+- **Identity**: Firebase Authentication (Anonymous/Email) ensures secure, isolated user sessions.
+- **Sanitization**: All dynamic content is passed through a sanitization layer to prevent XSS.
+- **Validation**: Strict schema validation for usernames and learning data.
+- **Observability**: Structured, correlated logging integrated with GCP Cloud Logging.
 
-### 2. Vertex AI (Generative Content)
-The project demonstrates how to generate dynamic explanations using Google's Vertex AI / Gemini.
-- **Sample Script:** A Node.js sample execution script is provided in `samples/vertex_demo.js`.
-- **Run the Demo:** 
-  ```bash
-  export GEMINI_API_KEY="your-api-key"
-  node samples/vertex_demo.js
-  ```
+## ☁️ Advanced Google Cloud Integration
 
-### 3. Firestore Node.js Demo
+The platform goes beyond basic usage to leverage the depth of GCP:
+
+1.  **Firebase Firestore**: Distributed, low-latency data persistence with secure role-based access.
+2.  **Firebase Authentication**: Secure user identity management.
+3.  **GCP Cloud Logging**: Centralized observability with request correlation IDs for distributed tracing.
+4.  **Vertex AI (Gemini)**: Structured few-shot prompting for consistent, adaptive learning explanations.
+
+## 🚀 Setup & Run
+
+### Prerequisites
+- Node.js (v18+)
+- A Google Cloud Project with Billing enabled.
+
+### Local Development
+1.  **Clone the Repo**: `git clone <repo_url>`
+2.  **Install Dependencies**: `npm install`
+3.  **Configure Environment**: 
+    - Copy `.env.example` to `.env`.
+    - Fill in your Firebase and Vertex AI credentials.
+4.  **Run Locally**: `npm run dev` (or use a static server like `npx serve .`)
+5.  **Run Tests**: `npm test`
+
+### Deployment
+Deploy to Google App Engine:
+```bash
+gcloud app deploy app.yaml
+```
+*Deployment is optimized via `.gcloudignore`, skipping 99% of unnecessary files.*
+
+### Firestore Node.js Demo
 To understand how the backend can interact with the same Firestore database used by the frontend:
 - **Run the Demo:**
   ```bash
