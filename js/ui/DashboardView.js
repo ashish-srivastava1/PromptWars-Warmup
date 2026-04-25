@@ -112,10 +112,18 @@ export class DashboardView {
     });
 
     // Reset button
-    document.getElementById('btn-reset')?.addEventListener('click', () => {
-      if (confirm('Reset all progress? This cannot be undone.')) {
-        this.onLogout();
-      }
-    });
+    const resetBtn = document.getElementById('btn-reset');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', (e) => {
+        console.log('[Dashboard] Reset button clicked');
+        e.preventDefault();
+        e.stopPropagation();
+        if (confirm('Reset all progress? This cannot be undone.')) {
+          this.onLogout();
+        }
+      });
+    } else {
+      console.error('[Dashboard] Reset button not found in DOM during mount()');
+    }
   }
 }
